@@ -1,0 +1,13 @@
+
+General description
+--------------------
+
+- MGSP should contain the world size (AABB)
+- The world will be one cell at the top level, containing the information of
+  the sub-divisions (2 chars, until 256x256 subdivisions).
+- Each cell will contain the XFactor and YFactor to be used when calculated the
+  subcell where a point is.
+- Each cell should contain a flag telling if it is a leaf or not. Also a pointer
+  to the vector where all the elements of that cell are.
+- Provide dirtiness flags.
+
