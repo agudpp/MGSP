@@ -75,6 +75,23 @@ public:
         return mSubCells[mYSubDivisions * row + col];
     }
 
+    // @brief Recursive method to calculate the number of cells including
+    //        this cells and the childs one.
+    //
+    unsigned int
+    getNumCells(void) const
+    {
+        unsigned int result = mXSubDivisions * mYSubDivisions;
+        for (unsigned int i = 0; i < mSubCells.size(); ++i) {
+            if (mSubCells[i].getXSubdivisions() > 0 &&
+                mSubCells[i].getYSubdivisions() > 0) {
+                // call recursively
+                result += mSubCells[i].getNumCells();
+            }
+        }
+        return result;
+    }
+
     // @brief Return the sub-cells vector
     //
     const std::vector<CellStructInfo>&

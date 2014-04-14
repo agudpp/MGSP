@@ -21,7 +21,6 @@
 
 #include "MultiGridSpacePartition.h"
 
-#include <deque>
 
 namespace mgsp {
 
@@ -37,8 +36,8 @@ MultiGridSpacePartition::MultiGridSpacePartition() :
 ////////////////////////////////////////////////////////////////////////////
 MultiGridSpacePartition::~MultiGridSpacePartition()
 {
-    delete mCells;
-    delete mCellObjIndices;
+    delete[] mCells;
+    delete[] mCellObjIndices;
 }
 
 
@@ -65,8 +64,14 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
 
     // if we are able to construct then we will do it, first of all we will
     // check how many cells we will need.
-    unsigned int cellsCount = 1; // start with the first one
+    mNumCells = 1 + info.getNumCells(); // start with the first one
 
+    // now create all the cells
+    mCells = new Cell[mNumCells];
+    mCellObjIndices = new ObjectIndicesVec[mNumCells];
+
+    // now we need to configure each cell, for this we will use a recursive
+    // algorithm
 }
 
 // TODO: add the import / export method to read all this from a file (we
