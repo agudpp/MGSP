@@ -23,7 +23,6 @@
 #define CELL_H_
 
 #include "TypeDefs.h"
-#include "MatrixPartition.h"
 
 namespace mgsp {
 
@@ -36,19 +35,37 @@ struct CellFlags {
     CellFlags() : dirty(0), isLeaf(0) {}
 };
 
+// There are two type of cells, leaf and matrix cells. The leaf cells will only
+// contain an offset (index) where are all the objects associated to this cell.
+// Only leaf cell can contain objects.
+// The "matrix" cells will contain cells inside of them, so the index associated
+// is an offset where we have the MatrixPartition. This type of cells
+// do not contain Objects directly.
+//
 
 struct Cell
 {
-    // here we will have the information of the cell, if it is a leaf cell
-    // then we will contain the cellIndex only, this is the index to the
-    // array of CellData (where the AABB will be).
-    // If the cell is not a leaf, then holds the recursive information (cellInfo).
+    // We will do an ugly trick here, to avoid mem align problems
+    // We will use an uint16_t to merge the flag and the index in the same
+    // uint16_t.
+    // The flag will indicate if it is a leaf cell or if it is a matrix
     //
-    CellFlags flags;
-    union data {
-        MatrixPartition<uint16_t> cellInfo;
-        uint16_t cellIndex;
-    };
+    uint16_t data;
+
+    // auxiliary methods to get the index and the flag
+    //
+    inline bool
+    isLeaf(void) const {return data & (1 << 15);}
+    inline uint16_t
+    index(void) const {return data & 0x7FFF;}
+
+    // Configure the cell from a flag and a index
+    //
+    inline void
+    configure(bool isLeaf, uint16_t index)
+    {
+        data = ((int)isLeaf << 15) | (index & 0x7FFF);
+    }
 };
 
 } /* namespace mgsp */

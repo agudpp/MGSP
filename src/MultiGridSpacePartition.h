@@ -77,16 +77,23 @@ public:
 
     // @brief Recursive method to calculate the number of cells including
     //        this cells and the childs one.
+    //        We also will return the number of leaf cells and Matrix cells
+    // @return [leafCells, matrixCells]
     //
-    unsigned int
+    std::pair<unsigned int, unsigned int>
     getNumCells(void) const
     {
-        unsigned int result = mXSubDivisions * mYSubDivisions;
+        std::pair<unsigned int, unsigned int> result(0,0);
+
         for (unsigned int i = 0; i < mSubCells.size(); ++i) {
             if (mSubCells[i].getXSubdivisions() > 0 &&
                 mSubCells[i].getYSubdivisions() > 0) {
                 // call recursively
-                result += mSubCells[i].getNumCells();
+                std::pair<unsigned int, unsigned int> tmp = mSubCells[i].getNumCells();
+                result.first += tmp.first;
+                result.second += tmp.second + 1;
+            } else {
+                result.first += 1;
             }
         }
         return result;
@@ -164,6 +171,14 @@ public:
     void
     getObjects(const AABB& aabb, ObjectPtrVec& result);
 
+
+#ifdef DEBUG
+    // This method will return the size of this structure.
+    //
+    inline unsigned int
+    memSize(void) const;
+#endif
+
 private:
 
     // @brief Check if an object is handled by this class
@@ -177,14 +192,15 @@ private:
     // the world size we are mapping
     AABB mWorld;
     // the number of cells we have (in all the levels) and the pointer to them
-    unsigned int mNumCells;
-    Cell* mCells;
-    // The array of cell indices, each cell (leaf cell) will contain a list of
+    std::vector<Cell> mCells;
+    // The array of cell (leaf) indices, each cell (leaf cell) will contain a list of
     // objects, this objects are in vectors, this probably is not the best option
     // but should work fine now.
     // Each one of this ObjectIndicesVec will contain the ObjectIndex associated
     // to the Object* in the mObjects vector
-    ObjectIndicesVec* mCellObjIndices;
+    std::vector<ObjectIndicesVec> mLeafCells;
+    // The Matrix cells
+    std::vector<MatrixPartition> mMatrixCells;
     // The list of objects we are currently handling
     std::vector<Object*> mObjects;
 
@@ -214,6 +230,26 @@ MultiGridSpacePartition::checkObjectExists(const Object* object) const
     return object->_mgsp_index < mObjects.size() &&
         mObjects[object->_mgsp_index] == object;
 }
+
+
+#ifdef DEBUG
+// This method will return the size of this structure
+//
+inline unsigned int
+MultiGridSpacePartition::memSize(void) const
+{
+    unsigned int objSize = 0;
+    for (unsigned int i = 0; i < mLeafCells.size(); ++i) {
+        objSize += sizeof(ObjectIndex) * mLeafCells[i].size();
+    }
+    return sizeof(this) +
+           sizeof(Cell) * mCells.size() +
+           sizeof(ObjectIndicesVec) * mLeafCells.size() +
+           sizeof(MatrixPartition) * mMatrixCells.size() +
+           sizeof(Object*) * mObjects.size();
+}
+#endif
+
 
 } /* namespace mgsp */
 #endif /* MULTIGRIDSPACEPARTITION_H_ */

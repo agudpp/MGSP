@@ -26,9 +26,7 @@ namespace mgsp {
 
 
 ////////////////////////////////////////////////////////////////////////////
-MultiGridSpacePartition::MultiGridSpacePartition() :
-    mCells(0)
-,   mCellObjIndices(0)
+MultiGridSpacePartition::MultiGridSpacePartition()
 {
 
 }
@@ -36,8 +34,6 @@ MultiGridSpacePartition::MultiGridSpacePartition() :
 ////////////////////////////////////////////////////////////////////////////
 MultiGridSpacePartition::~MultiGridSpacePartition()
 {
-    delete[] mCells;
-    delete[] mCellObjIndices;
 }
 
 
@@ -49,8 +45,9 @@ bool
 MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info)
 {
     // clear everything
-    delete mCells; mCells = 0;
-    delete mCellObjIndices; mCellObjIndices = 0;
+    mCells.clear();
+    mLeafCells.clear();
+    mMatrixCells.clear();
     mObjects.clear();
 
     // check if we have correct information
@@ -64,14 +61,33 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
 
     // if we are able to construct then we will do it, first of all we will
     // check how many cells we will need.
-    mNumCells = 1 + info.getNumCells(); // start with the first one
+    std::pair<unsigned int, unsigned int> numCells = info.getNumCells();
+
+    // we will have a base cell that will map the world
+    numCells.second += 1;
 
     // now create all the cells
-    mCells = new Cell[mNumCells];
-    mCellObjIndices = new ObjectIndicesVec[mNumCells];
+    mCells.reserve(numCells.first + numCells.second);
+    mLeafCells.reserve(numCells.first);
+    mMatrixCells.reserve(numCells.second);
 
     // now we need to configure each cell, for this we will use a recursive
     // algorithm
+    unsigned int cellIndex = 1;
+    unsigned int leafIndex = 0;
+    unsigned int matrixCell = 1;
+    Cell* cellPtr = 1;
+
+    // configure the main cell (0)
+    ASSERT(!mMatrixCells.empty());
+    ASSERT(!mCells.empty());
+
+    mCells[0].configure(false, 0);
+    mMatrixCells[0].construct(info.getXSubdivisions(),
+                              info.getYSubdivisions(),
+                              worldSize,
+                              cellPtr);
+
 }
 
 // TODO: add the import / export method to read all this from a file (we
