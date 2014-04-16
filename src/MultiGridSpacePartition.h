@@ -31,6 +31,7 @@
 #include "Cell.h"
 #include "TypeDefs.h"
 #include "Object.h"
+#include "MatrixPartition.h"
 
 
 namespace mgsp {
@@ -62,15 +63,18 @@ public:
     uint8_t getXSubdivisions(void) const {return mXSubDivisions;}
     uint8_t getYSubdivisions(void) const {return mYSubDivisions;}
 
+    const bool
+    isLeaf(void) const {mSubCells.empty();}
+
     // @brief Get the cell at (x,y) position: (0,0) <= (row,column) < (xSubDiv, ySubDiv)
     // @note Make sure you call createSubDivisions before calling this method
     //       since we will abort if the param is not right
     //
-    CellStructInfo&
-    getSubCell(uint8_t row, uint8_t col)
+    const CellStructInfo&
+    getSubCell(uint8_t row, uint8_t col) const
     {
-        assert(row < mXSubDivisions);
-        assert(col < mYSubDivisions);
+        ASSERT(row < mXSubDivisions);
+        ASSERT(col < mYSubDivisions);
         // this is assert(mYSubDivisions * row + col < mSubCells.size());
         return mSubCells[mYSubDivisions * row + col];
     }

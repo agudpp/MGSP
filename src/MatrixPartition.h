@@ -26,7 +26,6 @@
 // We will use this class to let the code clearly, but this can be changed
 // to use another type of data structure (a much more efficient one)
 #include <vector>
-#include <assert>
 
 #include <math/AABB.h>
 #include <math/Vec2.h>
@@ -68,13 +67,6 @@ class MatrixPartition
     //
     inline const AABB&
     boundingBox(void) const;
-
-    // @brief Get the index for an specific row and column
-    // @param row   The row
-    // @param col   The column
-    //
-    inline size_t
-    getIndex(size_t row, size_t col) const;
 
     // @brief Get the cell index of from an specific row and column or from an index
     // @param row   The row
@@ -134,8 +126,9 @@ private:
 //
 
 // check if a point is in the matrix
+template<typename IndexType>
 inline bool
-isPointInMatrix(const Vector2& p) const
+MatrixPartition<IndexType>::isPointInMatrix(const Vector2& p) const
 {
     return mBoundingBox.checkPointInside(p);
 }
@@ -210,17 +203,10 @@ MatrixPartition<IndexType>::getCellIndex(size_t row, size_t col) const
 
 template<typename IndexType>
 inline IndexType
-MatrixPartition<IndexType>::getCellIndex(IndexType index) const
+MatrixPartition<IndexType>::getCellIndex(size_t index) const
 {
     ASSERT(index < (mNumColumns * mNumRows));
     return mBeginIndex + index;
-}
-
-template<typename IndexType>
-inline bool
-MatrixPartition<IndexType>::isPositionInside(const Vector2& position) const
-{
-    return mBoundingBox.checkPointInside(position);
 }
 
 template<typename IndexType>

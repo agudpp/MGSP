@@ -23,13 +23,15 @@
 #define TYPEDEFS_H_
 
 
+#include <stdint.h>
+#include <stdlib.h>
 
 // Here we  will define the type defs for the different classes used in this
 // project
 
 namespace mgsp {
 
-typedef float32         float;
+typedef float           float32;
 
 typedef int8_t          int8_t;
 typedef int16_t         int16_t;
