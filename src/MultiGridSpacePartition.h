@@ -110,6 +110,8 @@ public:
 private:
     uint8_t mXSubDivisions;
     uint8_t mYSubDivisions;
+    // this is used only by MutliGrid to map cells to world spaces
+    AABB mSpaceMap;
     std::vector<CellStructInfo> mSubCells;
 };
 
@@ -200,7 +202,7 @@ private:
     // to the Object* in the mObjects vector
     std::vector<ObjectIndicesVec> mLeafCells;
     // The Matrix cells
-    std::vector<MatrixPartition> mMatrixCells;
+    std::vector<MatrixPartition<uint16_t> > mMatrixCells;
     // The list of objects we are currently handling
     std::vector<Object*> mObjects;
 

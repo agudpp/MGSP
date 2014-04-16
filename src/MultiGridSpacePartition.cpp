@@ -73,14 +73,41 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
 
     // now we need to configure each cell, for this we will use a recursive
     // algorithm
-    unsigned int cellIndex = 1;
+    unsigned int cellIndex = 0;
     unsigned int leafIndex = 0;
-    unsigned int matrixCell = 1;
-    Cell* cellPtr = 1;
+    unsigned int matrixIndex = 0;
 
-    // configure the main cell (0)
     ASSERT(!mMatrixCells.empty());
     ASSERT(!mCells.empty());
+
+    // we will do it recursively, to do this we will get each CellStructInfo
+    // that is a Matrix cell and we will build them and queue whenever we found
+    // a new one.
+    struct CellInfoContext{
+        const CellStructInfo* cellInfo;
+        unsigned int cellIndex;
+
+        CellInfoContext(const CellStructInfo* ci, unsigned int cIndex) :
+            cellInfo(ci), cellIndex(cIndex) {}
+    };
+    std::queue<CellInfoContext> matrixCellsQ;
+    matrixCellsQ.push(CellInfoContext(&info, cellIndex));
+    ++cellIndex; // we will use this for the matrixCell
+
+    while (!matrixCellsQ.empty()) {
+        CellInfoContext cic = matrixCellsQ.front();
+        matrixCellsQ.pop();
+        ASSERT(cic.cellInfo != 0);
+
+        // configure the cell matrix
+        mCells[cic.cellIndex].configure(false, matrixIndex);
+        mMatrixCells[matrixIndex].construct(ci->getXSubdivisions(),
+                                            ci->getYSubdivisions(),
+                                            XXXX, // TODO: FIX THIS
+                                            cellIndex);
+        ++matrixIndex;
+        // now the
+    }
 
     mCells[0].configure(false, 0);
     mMatrixCells[0].construct(info.getXSubdivisions(),

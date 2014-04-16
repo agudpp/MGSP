@@ -36,7 +36,7 @@
 
 namespace mgsp {
 
-template <typename CellType>
+template <typename IndexType>
 class MatrixPartition
 {
     MatrixPartition(){}
@@ -49,14 +49,13 @@ class MatrixPartition
     // @param numColumns    The number of columns to use
     // @param numRows       The number of rows to use
     // @param aabb          The world space we are mapping with this matrix
-    // @param data          The pointer to the CellType array holding at least
-    //                      numColumns * numRows elements.
+    // @param beginIndex    The beginning index where we map our cells
     //
     inline void
     construct(uint8_t numColumns,
               uint8_t numRows,
               const AABB& aabb,
-              CellType* data);
+              IndexType beginIndex);
 
     // @brief Return the number of rows and columns
     //
@@ -77,42 +76,36 @@ class MatrixPartition
     inline size_t
     getIndex(size_t row, size_t col) const;
 
-    // @brief Get the cell of from an specific row and column or from an index
+    // @brief Get the cell index of from an specific row and column or from an index
     // @param row   The row
     // @param col   The column
     //
-    inline CellType&
-    getCell(size_t row, size_t col);
-    inline const CellType&
-    getCell(size_t row, size_t col) const;
-    inline CellType&
-    getCell(size_t index);
-    inline const CellType&
-    getCell(size_t index) const;
+    inline IndexType
+    getCellIndex(size_t row, size_t col) const;
+    inline IndexType
+    getCellIndex(size_t index) const;
 
-    // @brief Get a cell from a position (the position must be inside the boundingBox
-    //        of this matrix). Check that before calling this method. If not
-    //        the position will be clamped to the bounding
+    // @brief Get a cell index from a position (the position must be inside the
+    //        boundingBoxof this matrix). Check that before calling this method.
+    //        If not the position will be clamped to the bounding
     // @param position  The position that will be mapped into a cell
     // @return the associated cell
     //
-    inline const CellType&
-    getCell(const Vector2& position) const;
-    inline CellType&
-    getCell(const Vector2& position);
+    inline IndexType
+    getCellIndex(const Vector2& position) const;
 
-    // @brief Get the associated cells pointers that intersects a given AABB
+    // @brief Get the associated cells indices that intersects a given AABB
     // @param aabb      The AABB of the query
-    // @param result    The list of CellType* that intersect with AABB
+    // @param result    The list of IndexType* that intersect with AABB
     //
     inline void
-    getCells(const AABB& aabb, std::vector<CellType *>& result);
+    getCells(const AABB& aabb, std::vector<IndexType>& result);
 
     // @brief Check if a cell id is valid
     // @param index   The index of the cell to be checked
     //
     inline bool
-    isIndexValid(size_t index) const;
+    isIndexValid(IndexType index) const;
 
 private:
     // @brief Helper method to get clamped X and Y position from a given x/y value
@@ -132,7 +125,7 @@ private:
     uint8_t mNumColumns;
     float32 mInvXFactor;
     float32 mInvYFactor;
-    CellType* mData;
+    IndexType mBeginIndex;
 };
 
 
@@ -149,17 +142,17 @@ isPointInMatrix(const Vector2& p) const
 
 
 ////////////////////////////////////////////////////////////////////////////////
-template<typename CellType>
+template<typename IndexType>
 inline size_t
-MatrixPartition<CellType>::getClampedX(float32 x) const
+MatrixPartition<IndexType>::getClampedX(float32 x) const
 {
     return (x <= mBoundingBox.tl.x ? 0 :
             x >= mBoundingBox.br.x ? mNumRows - 1 :
             static_cast<size_t>((x - mBoundingBox.tl.x) * mInvXFactor));
 }
-template<typename CellType>
+template<typename IndexType>
 inline size_t
-MatrixPartition<CellType>::getClampedY(float32 y) const
+MatrixPartition<IndexType>::getClampedY(float32 y) const
 {
     return (y >= mBoundingBox.tl.y ? mNumRows -1 :
             y <= mBoundingBox.br.y ? 0 :
@@ -167,15 +160,15 @@ MatrixPartition<CellType>::getClampedY(float32 y) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template<typename CellType>
+template<typename IndexType>
 inline void
-MatrixPartition<CellType>::construct(uint8_t numColumns,
-                                     uint8_t numRows,
-                                     const AABB& aabb,
-                                     CellType* data)
+MatrixPartition<IndexType>::construct(uint8_t numColumns,
+                                      uint8_t numRows,
+                                      const AABB& aabb,
+                                      IndexType beginIndex)
 {
     ASSERT(data != 0);
-    mData = data;
+    mBeginIndex = beginIndex;
 
     mNumColumns = numColumns;
     mNumRows = numRows;
@@ -188,71 +181,51 @@ MatrixPartition<CellType>::construct(uint8_t numColumns,
     mInvXFactor = static_cast<float32>(numColumns) / worldWidth; // 1 / XCellSize
 }
 
-template<typename CellType>
+template<typename IndexType>
 inline uint8_t
-MatrixPartition<CellType>::numColumns(void) const
+MatrixPartition<IndexType>::numColumns(void) const
 {
     return mNumColumns;
 }
-template<typename CellType>
+template<typename IndexType>
 inline uint8_t
-MatrixPartition<CellType>::numRows(void) const
+MatrixPartition<IndexType>::numRows(void) const
 {
     return mNumRows;
 }
 
-template<typename CellType>
+template<typename IndexType>
 inline const AABB&
-MatrixPartition<CellType>::boundingBox(void) const
+MatrixPartition<IndexType>::boundingBox(void) const
 {
     return mBoundingBox;
 }
 
-template<typename CellType>
-inline size_t
-MatrixPartition<CellType>::getIndex(size_t row, size_t col) const
+template<typename IndexType>
+inline IndexType
+MatrixPartition<IndexType>::getCellIndex(size_t row, size_t col) const
 {
-    return mNumColumns * row + col;
+    return mBeginIndex + mNumColumns * row + col;
 }
 
-template<typename CellType>
-inline CellType&
-MatrixPartition<CellType>::getCell(size_t index)
+template<typename IndexType>
+inline IndexType
+MatrixPartition<IndexType>::getCellIndex(IndexType index) const
 {
     ASSERT(index < (mNumColumns * mNumRows));
-    return mData[index];
-}
-template<typename CellType>
-inline const CellType&
-MatrixPartition<CellType>::getCell(size_t index) const
-{
-    ASSERT(index < (mNumColumns * mNumRows));
-    return mData[index];
+    return mBeginIndex + index;
 }
 
-template<typename CellType>
-inline CellType&
-MatrixPartition<CellType>::getCell(size_t row, size_t col)
-{
-    return getCell(getIndex(row, col));
-}
-template<typename CellType>
-inline const CellType&
-MatrixPartition<CellType>::getCell(size_t row, size_t col) const
-{
-    return getCell(getIndex(row, col));
-}
-
-template<typename CellType>
+template<typename IndexType>
 inline bool
-MatrixPartition<CellType>::isPositionInside(const Vector2& position) const
+MatrixPartition<IndexType>::isPositionInside(const Vector2& position) const
 {
     return mBoundingBox.checkPointInside(position);
 }
 
-template<typename CellType>
-inline const CellType&
-MatrixPartition<CellType>::getCell(const Vector2& position) const
+template<typename IndexType>
+inline IndexType
+MatrixPartition<IndexType>::getCellIndex(const Vector2& position) const
 {
     // translate positions inside of our coordinate system and multiply by the
     // factor to get the index directly
@@ -262,27 +235,12 @@ MatrixPartition<CellType>::getCell(const Vector2& position) const
     ASSERT(row < mNumRows);
     ASSERT(col < mNumColumns);
 
-    return getCell(row, col);
+    return getCellIndex(row, col);
 }
 
-template<typename CellType>
-inline CellType&
-MatrixPartition<CellType>::getCell(const Vector2& position)
-{
-    // translate positions inside of our coordinate system and multiply by the
-    // factor to get the index directly
-    const size_t row = getClampedX(position.x);
-    const size_t col = getClampedY(position.y);
-
-    ASSERT(row < mNumRows);
-    ASSERT(col < mNumColumns);
-
-    return getCell(row, col);
-}
-
-template<typename CellType>
+template<typename IndexType>
 inline void
-MatrixPartition<CellType>::getCells(const AABB& aabb, std::vector<CellType *>& result)
+MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& result)
 {
     result.clear();
     // do fast check first
@@ -302,14 +260,14 @@ MatrixPartition<CellType>::getCells(const AABB& aabb, std::vector<CellType *>& r
     // TODO: optimize this
     for (; rowBegin <= rowEnd; ++rowBegin) {
         for (size_t col = colBegin; col <= colEnd; ++col) {
-            result.push_back(&getCell(rowBegin, col));
+            result.push_back(getCellIndex(rowBegin, col));
         }
     }
 }
 
-template<typename CellType>
+template<typename IndexType>
 inline bool
-MatrixPartition<CellType>::isIndexValid(size_t index) const
+MatrixPartition<IndexType>::isIndexValid(IndexType index) const
 {
     return index < (mNumColumns * mNumRows);
 }
