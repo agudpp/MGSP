@@ -75,6 +75,15 @@ createAABBMaps(const mgsp::CellStructInfo& info,
 
 }
 
+struct CellInfoContext{
+    const mgsp::CellStructInfo* cellInfo;
+    unsigned int cellIndex;
+
+    CellInfoContext(const mgsp::CellStructInfo* ci, unsigned int cIndex) :
+        cellInfo(ci), cellIndex(cIndex)
+    {}
+};
+
 }
 
 
@@ -144,17 +153,6 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
     // we will do it recursively, to do this we will get each CellStructInfo
     // that is a Matrix cell and we will build them and queue whenever we found
     // a new one.
-    struct CellInfoContext{
-        const CellStructInfo* cellInfo;
-        unsigned int cellIndex;
-
-        CellInfoContext(const CellStructInfo* ci, unsigned int cIndex) :
-            cellInfo(ci), cellIndex(cIndex)
-        {}
-        CellInfoContext()
-        {}
-    };
-
     std::queue<CellInfoContext> matrixCellsQ;
     matrixCellsQ.push(CellInfoContext(&info, cellIndex));
     ++cellIndex; // we will use this for the matrixCell
@@ -167,8 +165,8 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
         // configure the cell matrix
         ASSERT(aabbMap.find(cic.cellInfo) != aabbMap.end());
         mCells[cic.cellIndex].configure(false, matrixIndex);
-        mMatrixCells[matrixIndex].construct(ci->getXSubdivisions(),
-                                            ci->getYSubdivisions(),
+        mMatrixCells[matrixIndex].construct(cic.cellInfo->getXSubdivisions(),
+                                            cic.cellInfo->getYSubdivisions(),
                                             aabbMap[cic.cellInfo],
                                             cellIndex);
         ++matrixIndex;
@@ -209,12 +207,15 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
 void
 MultiGridSpacePartition::insert(Object* object)
 {
-
+    ASSERT(false); // TODO
 }
 
 ////////////////////////////////////////////////////////////////////////////
 void
-MultiGridSpacePartition::remove(Object* object);
+MultiGridSpacePartition::remove(Object* object)
+{
+    ASSERT(false); // TODO
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -222,10 +223,16 @@ MultiGridSpacePartition::remove(Object* object);
 
 ////////////////////////////////////////////////////////////////////////////
 void
-MultiGridSpacePartition::getObjects(const Vector2& point, ObjectPtrVec& result);
+MultiGridSpacePartition::getObjects(const Vector2& point, ObjectPtrVec& result)
+{
+    ASSERT(false); // TODO
+}
 
 ////////////////////////////////////////////////////////////////////////////
 void
-MultiGridSpacePartition::getObjects(const AABB& aabb, ObjectPtrVec& result);
+MultiGridSpacePartition::getObjects(const AABB& aabb, ObjectPtrVec& result)
+{
+    ASSERT(false); // TODO
+}
 
 } /* namespace mgsp */

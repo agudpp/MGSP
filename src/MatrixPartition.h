@@ -38,6 +38,7 @@ namespace mgsp {
 template <typename IndexType>
 class MatrixPartition
 {
+public:
     MatrixPartition(){}
     ~MatrixPartition(){}
 
