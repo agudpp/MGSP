@@ -19,40 +19,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  */
 
-#ifndef OBJECT_H_
-#define OBJECT_H_
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <cmath>
 
+#include <UnitTest++/UnitTest++.h>
+
+#include <math/FloatComp.h>
 #include <math/AABB.h>
+#include <math/Vec2.h>
+#include <MultiGridSpacePartition.h>
+#include <TypeDefs.h>
+#include <Object.h>
 
-#include "TypeDefs.h"
 
-namespace mgsp {
+using namespace mgsp;
 
-// forward declaration
-//
-class MultiGridSpacePartition;
+typedef MultiGridSpacePartition MGSP;
+typedef CellStructInfo CSInfo;
+typedef ObjectPtrVec OPV;
+typedef Object O;
 
-// useful typedefs
-//
-typedef uint16_t ObjectIndex;
 
-// This class represent the basic object we will handle in our structure.
-// Basically we need only an AABB to be able to use the MultiGrid so you
-// can change this to adapt the object to your needs
-
-class Object
+TEST(BasicOperations)
 {
-public:
-    // TODO: We need to change the interface of this to prevent user modifications
-    //       since if we modify something here we will have an undefined behavior
-    // To solve this we just can provide another interface for the MGSP and use
-    // this class as private
-    Object(){}
-    Object(const AABB& aabb) : _mgsp_aabb(aabb) {}
+    MGSP mgsp;
+    CSInfo binfo;
+    OPV objs;
+    AABB world(Vector2(100,0), Vector2(0,100));
 
-    AABB _mgsp_aabb;
-    ObjectIndex _mgsp_index;
-};
+    // test creation
+    binfo.createSubDivisions(32,32);
+    CHECK_EQUAL(true, mgsp.build(world, binfo));
 
-} /* namespace mgsp */
-#endif /* OBJECT_H_ */
+    // check that we cannot get anything
+    mgsp.getObjects(world, objs);
+    CHECK_EQUAL(0, objs.size());
+
+    // Insert a new object twice and check if we get only one
+    O ob(AABB(10,10,5,15));
+    mgsp.insert(&ob);
+    mgsp.insert(&ob);
+    mgsp.getObjects(world, objs);
+    CHECK_EQUAL(1, objs.size());
+    CHECK_EQUAL(&ob, objs[0]);
+}
+
+
+int
+main(void)
+{
+    return UnitTest::RunAllTests();
+}
+
+
+
+

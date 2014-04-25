@@ -1,41 +1,19 @@
-#
-# 'make depend' uses makedepend to automatically generate dependencies 
-#	       (dependencies are added to end of Makefile)
-# 'make'	build executable file 'mgsp'
-# 'make clean'  removes all .o and executable files
-#
-
-# define the C compiler to use
 CC = g++
 
 # define any compile-time flags
-CFLAGS = -Wall -g -std=c++11 -ftree-vectorize -O3 -ffast-math
+CFLAGS = -Wall -g -std=c++11 -ftree-vectorize -O3 -ffast-math -DDEBUG
+
 
 # define any directories containing header files other than /usr/include
 #
 INCLUDES = -I.
+LFLAGS = -L/usr/local/lib/
+# for test we need the UnitTest++ lib
+LIBS = -lUnitTest++
 
-# define library paths in addition to /usr/lib
-#   if I wanted to include libraries not in /usr/lib I'd specify
-#   their path using -Lpath, something like:
-LFLAGS =
+# define the C++ source files
+SRCS = MultiGridSpacePartition.cpp mgsp_test.cpp
 
-# define any libraries to link into executable:
-#   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
-#   option, something like (this will link in libmylib.so and libm.so:
-LIBS =
-
-# define the C source files
-SRCS = MultiGridSpacePartition.cpp
-
-# define the C object files 
-#
-# This uses Suffix Replacement within a macro:
-#   $(name:string1=string2)
-#	 For each word in 'name' replace 'string1' with 'string2'
-# Below we are replacing the suffix .c of all words in the macro SRCS
-# with the .o suffix
-#
 OBJS = $(SRCS:.cpp=.o)
 
 # define the executable file 
@@ -50,10 +28,11 @@ MAIN = mgsp
 .PHONY: depend clean
 
 all:    $(MAIN)
-	@echo  Simple compiler named mgsp has been compiled
+	@echo  Done
 
 $(MAIN): $(OBJS) 
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS) 
+	
 
 # this is a suffix replacement rule for building .o's from .c's
 # it uses automatic variables $<: the name of the prerequisite of

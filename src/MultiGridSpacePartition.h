@@ -298,7 +298,7 @@ MultiGridSpacePartition::memSize(void) const
     return sizeof(this) +
            sizeof(Cell) * mCells.size() +
            sizeof(ObjectIndicesVec) * mLeafCells.size() +
-           sizeof(MatrixPartition) * mMatrixCells.size() +
+           sizeof(MatrixPartition<uint16_t>) * mMatrixCells.size() +
            sizeof(Object*) * mObjects.size();
 }
 #endif

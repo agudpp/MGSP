@@ -24,7 +24,7 @@
 
 
 #ifdef DEBUG
-#include <assert>
+#include <assert.h>
 #include <iostream>
 
 #define ASSERT(x)   assert(x)

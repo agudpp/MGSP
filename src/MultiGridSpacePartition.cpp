@@ -180,13 +180,14 @@ MultiGridSpacePartition::getIDsFromAABB(const AABB& aabb,
     mTmpMatrixIds.clear();
     mTmpMatrixIds.push_back(0); //0 == getRootMatrix()
     while (!mTmpMatrixIds.empty()) {
-        const int16_t mindex = mTmpMatrixIds.back();
+        const uint16_t mindex = mTmpMatrixIds.back();
         mTmpMatrixIds.pop_back();
 
         // get all the cells that intersects this matrix
         ASSERT(mindex < mMatrixCells.size());
         const MatrixPartition<uint16_t>& matrix = mMatrixCells[mindex];
         matrix.getCells(aabb, mTmpIndices);
+        DEBUG_PRINT("mTmpIndices.size() " << mTmpIndices.size() << std::endl);
 
         // iterate over all the cells and check if is a matrix or leaf cell
         for (size_t i = 0; i < mTmpIndices.size(); ++i) {
@@ -249,9 +250,9 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
     createAABBMaps(info, worldSize, aabbMap);
 
     // now create all the cells
-    mCells.reserve(numCells.first + numCells.second);
-    mLeafCells.reserve(numCells.first);
-    mMatrixCells.reserve(numCells.second);
+    mCells.resize(numCells.first + numCells.second);
+    mLeafCells.resize(numCells.first);
+    mMatrixCells.resize(numCells.second);
 
     // now we need to configure each cell, for this we will use a recursive
     // algorithm
@@ -301,7 +302,7 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
 
     // ensure that everything is what we expect
     ASSERT(cellIndex == mCells.size());
-    ASSERT(matrixInde == mMatrixCells.size());
+    ASSERT(matrixIndex == mMatrixCells.size());
     ASSERT(leafIndex == mLeafCells.size());
 
     return true;
@@ -339,6 +340,7 @@ MultiGridSpacePartition::insert(Object* object)
 
     // insert the element to the matrix
     getIDsFromAABB(object->_mgsp_aabb, mLeafTmpIndices);
+    DEBUG_PRINT("mLeafTmpIndices.size(): " << mLeafTmpIndices.size() << std::endl);
     for (size_t i = 0; i < mLeafTmpIndices.size(); ++i) {
         ASSERT(mLeafTmpIndices[i] < mLeafCells.size());
         // insert the object to the leaf cell

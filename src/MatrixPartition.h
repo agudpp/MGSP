@@ -162,7 +162,6 @@ MatrixPartition<IndexType>::construct(uint8_t numColumns,
                                       const AABB& aabb,
                                       IndexType beginIndex)
 {
-    ASSERT(data != 0);
     mBeginIndex = beginIndex;
 
     mNumColumns = numColumns;
