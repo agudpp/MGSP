@@ -92,13 +92,17 @@ public:
     // @param result    The list of IndexType* that intersect with AABB
     //
     inline void
-    getCells(const AABB& aabb, std::vector<IndexType>& result);
+    getCells(const AABB& aabb, std::vector<IndexType>& result) const;
 
     // @brief Check if a cell id is valid
     // @param index   The index of the cell to be checked
     //
     inline bool
     isIndexValid(IndexType index) const;
+
+    // check if a point is in the matrix
+    inline bool
+    isPointInMatrix(const Vector2& p) const;
 
 private:
     // @brief Helper method to get clamped X and Y position from a given x/y value
@@ -108,9 +112,6 @@ private:
     inline size_t
     getClampedY(float32 y) const;
 
-    // check if a point is in the matrix
-    inline bool
-    isPointInMatrix(const Vector2& p) const;
 
 private:
     AABB mBoundingBox;
@@ -227,7 +228,7 @@ MatrixPartition<IndexType>::getCellIndex(const Vector2& position) const
 
 template<typename IndexType>
 inline void
-MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& result)
+MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& result) const
 {
     result.clear();
     // do fast check first

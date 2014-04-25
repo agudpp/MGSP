@@ -44,19 +44,13 @@ class Object
 {
 public:
 
-    // @brief Basic interface needed to be used in the MultiGrid
-    //
-    inline void
-    setAABB(const AABB& aabb) {mAABB = aabb;}
-    inline const AABB&
-    getAABB(void) const {return mAABB;}
 
 private:
-    AABB mAABB;
 
     // we will also need a index for fast access in the MultiGridSpacePartition
     //
     friend class MultiGridSpacePartition;
+    AABB _mgsp_aabb;
     ObjectIndex _mgsp_index;
 };
 

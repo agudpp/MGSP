@@ -23,6 +23,8 @@
 #define MULTIGRIDSPACEPARTITION_H_
 
 #include <vector>
+#include <unordered_set>
+#include <queue>
 
 #include <math/AABB.h>
 #include <math/Vec2.h>
@@ -64,7 +66,7 @@ public:
     uint8_t getYSubdivisions(void) const {return mYSubDivisions;}
 
     const bool
-    isLeaf(void) const {mSubCells.empty();}
+    isLeaf(void) const {return mSubCells.empty();}
 
     // @brief Get the cell at (x,y) position: (0,0) <= (row,column) < (xSubDiv, ySubDiv)
     // @note Make sure you call createSubDivisions before calling this method
@@ -153,6 +155,13 @@ public:
     void
     insert(Object* object);
 
+    // @brief Update the position / AABB from an object
+    // @param object        The object to be updated
+    // @param aabb          The new aabb of the object
+    //
+    void
+    update(Object* object, const AABB& aabb);
+
     // @brief Remove an object from the multi grid
     // @param object        The object to remove
     //
@@ -177,6 +186,13 @@ public:
     void
     getObjects(const AABB& aabb, ObjectPtrVec& result);
 
+    // @brief Get the main (root) Matrix cell
+    //
+    inline MatrixPartition<uint16_t>&
+    getRootMatrix(void);
+    inline const MatrixPartition<uint16_t>&
+    getRootMatrix(void) const;
+
 
 #ifdef DEBUG
     // This method will return the size of this structure.
@@ -194,6 +210,15 @@ private:
     inline bool
     checkObjectExists(const Object* object) const;
 
+    // @brief This method will return the list of Leaf cells for a particular
+    //        bounding box.
+    //        This will be the main method for almost all the operations.
+    // @param aabb      The bounding box of the query
+    // @param ids       The resulting list of Leaf cell ids
+    //
+    void
+    getIDsFromAABB(const AABB& aabb, std::vector<uint16_t>& ids) const;
+
 private:
     // the world size we are mapping
     AABB mWorld;
@@ -209,6 +234,16 @@ private:
     std::vector<MatrixPartition<uint16_t> > mMatrixCells;
     // The list of objects we are currently handling
     std::vector<Object*> mObjects;
+    std::queue<unsigned int> mObjectFreeIndices;
+
+    // Internal usage members, to avoid multiple reallocation in memory
+    // TODO: Optimize: This vectors and queue should be replaced for a stack-mem
+    //       version instead of a std one (allocated in the heap....) UGLY
+    mutable std::vector<uint16_t> mTmpMatrixIds;
+    mutable std::vector<uint16_t> mTmpIndices;
+    mutable std::vector<uint16_t> mTmpIndices2;
+    mutable std::vector<uint16_t> mLeafTmpIndices;
+    mutable std::unordered_set<uint16_t> mTmpHash;
 
 };
 
@@ -237,6 +272,17 @@ MultiGridSpacePartition::checkObjectExists(const Object* object) const
         mObjects[object->_mgsp_index] == object;
 }
 
+inline MatrixPartition<uint16_t>&
+MultiGridSpacePartition::getRootMatrix(void)
+{
+    return mMatrixCells[0];
+}
+inline const MatrixPartition<uint16_t>&
+MultiGridSpacePartition::getRootMatrix(void) const
+{
+    return mMatrixCells[0];
+}
+
 
 #ifdef DEBUG
 // This method will return the size of this structure
@@ -244,6 +290,7 @@ MultiGridSpacePartition::checkObjectExists(const Object* object) const
 inline unsigned int
 MultiGridSpacePartition::memSize(void) const
 {
+    ASSERT(false && "TODO: Calculate all the mem size used with the new members");
     unsigned int objSize = 0;
     for (unsigned int i = 0; i < mLeafCells.size(); ++i) {
         objSize += sizeof(ObjectIndex) * mLeafCells[i].size();
