@@ -1,7 +1,8 @@
 CC = g++
 
 # define any compile-time flags
-CFLAGS = -Wall -g -std=c++11 -ftree-vectorize -O3 -ffast-math -DDEBUG
+CFLAGS = -Wall -g -std=c++11 -ftree-vectorize -O3 -DDEBUG 
+#-ftree-vectorizer-verbose=7
 
 
 # define any directories containing header files other than /usr/include

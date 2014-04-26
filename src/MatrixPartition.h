@@ -231,7 +231,7 @@ MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& r
 {
     result.clear();
     // do fast check first
-    if (!aabb.collide(mBoundingBox)) {
+    if (!mBoundingBox.collide(aabb)) {
         return;
     }
 

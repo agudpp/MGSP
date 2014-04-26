@@ -46,13 +46,14 @@ createAABBMaps(const mgsp::CellStructInfo& info,
         const mgsp::CellStructInfo* csi = q.front();
         q.pop();
 
+        ASSERT(aabbMap.find(csi) != aabbMap.end());
         const mgsp::AABB& worldBB = aabbMap[csi];
 
         // get the size of each cell
         mgsp::uint8_t xdiv = csi->getXSubdivisions();
         mgsp::uint8_t ydiv = csi->getYSubdivisions();
-        const mgsp::float32 xsize = worldBB.getWidth() / ydiv;
-        const mgsp::float32 ysize = worldBB.getHeight() / xdiv;
+        const mgsp::float32 xsize = worldBB.getWidth() / static_cast<mgsp::float32>(ydiv);
+        const mgsp::float32 ysize = worldBB.getHeight() / static_cast<mgsp::float32>(xdiv);
 
         // now for each sub cell we need to verify only those that are matrices
         for (unsigned int i = 0; i < ydiv; ++i) {
@@ -187,7 +188,6 @@ MultiGridSpacePartition::getIDsFromAABB(const AABB& aabb,
         ASSERT(mindex < mMatrixCells.size());
         const MatrixPartition<uint16_t>& matrix = mMatrixCells[mindex];
         matrix.getCells(aabb, mTmpIndices);
-        DEBUG_PRINT("mTmpIndices.size() " << mTmpIndices.size() << std::endl);
 
         // iterate over all the cells and check if is a matrix or leaf cell
         for (size_t i = 0; i < mTmpIndices.size(); ++i) {
@@ -340,13 +340,11 @@ MultiGridSpacePartition::insert(Object* object)
 
     // insert the element to the matrix
     getIDsFromAABB(object->_mgsp_aabb, mLeafTmpIndices);
-    DEBUG_PRINT("mLeafTmpIndices.size(): " << mLeafTmpIndices.size() << std::endl);
     for (size_t i = 0; i < mLeafTmpIndices.size(); ++i) {
         ASSERT(mLeafTmpIndices[i] < mLeafCells.size());
         // insert the object to the leaf cell
         mLeafCells[mLeafTmpIndices[i]].push_back(object->_mgsp_index);
     }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -483,6 +481,7 @@ MultiGridSpacePartition::getObjects(const AABB& aabb, ObjectPtrVec& result)
     // depending on the problem and number of elements
     //
     mTmpHash.clear();
+    result.clear();
 
     // get the indices of the leaf cells that intersects the aabb
     getIDsFromAABB(aabb, mLeafTmpIndices);
@@ -492,10 +491,10 @@ MultiGridSpacePartition::getObjects(const AABB& aabb, ObjectPtrVec& result)
         ObjectIndicesVec& cell = mLeafCells[mLeafTmpIndices[i]];
         for (size_t j = 0; j < cell.size(); ++j) {
             // if the object is colliding and not in the set we add it
-            ASSERT(cell[i] < mObjects.size());
+            ASSERT(cell[j] < mObjects.size());
             Object* obj = mObjects[cell[j]];
             if (obj->_mgsp_aabb.collide(aabb) &&
-                mTmpHash.insert(obj->_mgsp_index).second == false) {
+                mTmpHash.insert(obj->_mgsp_index).second == true) {
                 // we need to add this one
                 result.push_back(obj);
                 // note that the element was already inserted in the if guard.
