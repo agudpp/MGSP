@@ -221,25 +221,86 @@ TEST(TestSimpleCollisions)
 
 }
 
-TEST(TestOneLevelStressColl)
+TEST(TestTwoLevelStressColl)
 {
-    /*
     MGSP mgsp;
     CSInfo binfo;
-    AABB world(Vector2(-500,500), Vector2(500,-500));
+    AABB world(500,-500,-500, 500);
 
     // create basic matrix with one subdivision
-    binfo.createSubDivisions(32,32);
+    const uint8_t subcellsX = 10;
+    const uint8_t subcellsY = 10;
+    binfo.createSubDivisions(subcellsX,subcellsY);
+    // we will subdivide each cell into 4-8 subcells
+    for (uint8_t x = 0; x < subcellsX; ++x) {
+        for (uint8_t y = 0; y < subcellsY; ++y) {
+            binfo.getSubCell(x,y).createSubDivisions(y%7 + 2, x%7 + 2);
+        }
+    }
     CHECK_EQUAL(true, mgsp.build(world, binfo));
 
+    // add some elements in different places and ensure that they are colliding
+    // we will add 10x10 elements in some kind of grid but touching betweem them
+    //
+    const unsigned int NUM_DIVS = 50;
+    ASSERT(NUM_DIVS % 2 == 0);
+    const float32 epsilon = 1.f;
+    const float32 width = world.getWidth() / static_cast<float32>(NUM_DIVS);
+    const float32 height = world.getHeight() / static_cast<float32>(NUM_DIVS);
+    const float halfH = height / 2.f,
+                halfW = width / 2.f;
+    const AABB size(halfH+epsilon, -halfW-epsilon,
+                    -halfH-epsilon, halfW+epsilon);
     OV objs;
-    AABB osize(5,0,0,5);
-    createCObjects(world, osize, 5000, objs);
+    objs.reserve(NUM_DIVS*NUM_DIVS);
 
-    // insert all of them
-    for (Object& o : objs) {
-        mgsp.insert(&o);
-    }*/
+    for (unsigned int x = 0; x < NUM_DIVS; ++x) {
+        for (unsigned int y = 0; y < NUM_DIVS; ++y) {
+            // set the BB in the correct position
+            AABB bb(size);
+            // get the center of the cell
+            const Vector2 cellCenter(static_cast<float32>(y) * width + halfH + world.tl.x,
+                                     static_cast<float32>(x) * height + halfW + world.br.y);
+
+            // move the bb to the center of the cell
+            bb.translate(cellCenter);
+            // create the object and add it to the vector
+            Object o;
+            o._mgsp_aabb = bb;
+            objs.push_back(o);
+
+        }
+    }
+    for (Object& o : objs) mgsp.insert(&o);
+
+    // check for collisions correctness
+    ARE_COLL_CORRECT(mgsp, objs);
+
+    // now we will move the first half objects
+    unsigned int si = objs.size()/2;
+    for (unsigned int i = 0; i < objs.size()/2; ++i, ++si) {
+        const AABB& npos = objs[si]._mgsp_aabb;
+        mgsp.update(&(objs[i]), npos);
+        objs[i]._mgsp_aabb = npos;
+    }
+
+    // now check that we are still getting correct results
+    ARE_COLL_CORRECT(mgsp, objs);
+
+    // move all of them to the center
+    const Vector2 matrixMiddle(world.tl.x + world.getWidth()/2.f,
+                               world.br.y + world.getHeight()/2.f);
+    AABB npos(size);
+    npos.translate(matrixMiddle);
+    for (unsigned int i = 0; i < objs.size(); ++i) {
+        mgsp.update(&(objs[i]), npos);
+        objs[i]._mgsp_aabb = npos;
+    }
+    ARE_COLL_CORRECT(mgsp, objs);
+    // all objects should be in the middle
+    OPV queryResult;
+    mgsp.getObjects(objs[0]._mgsp_aabb, queryResult);
+    CHECK_EQUAL(objs.size(), queryResult.size());
 }
 
 

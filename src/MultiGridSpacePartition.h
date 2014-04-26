@@ -80,6 +80,14 @@ public:
         // this is assert(mYSubDivisions * row + col < mSubCells.size());
         return mSubCells[mYSubDivisions * row + col];
     }
+    CellStructInfo&
+    getSubCell(uint8_t row, uint8_t col)
+    {
+        ASSERT(row < mXSubDivisions);
+        ASSERT(col < mYSubDivisions);
+        // this is assert(mYSubDivisions * row + col < mSubCells.size());
+        return mSubCells[mYSubDivisions * row + col];
+    }
 
     // @brief Recursive method to calculate the number of cells including
     //        this cells and the childs one.

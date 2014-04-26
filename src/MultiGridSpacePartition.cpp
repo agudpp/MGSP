@@ -52,12 +52,12 @@ createAABBMaps(const mgsp::CellStructInfo& info,
         // get the size of each cell
         mgsp::uint8_t xdiv = csi->getXSubdivisions();
         mgsp::uint8_t ydiv = csi->getYSubdivisions();
-        const mgsp::float32 xsize = worldBB.getWidth() / static_cast<mgsp::float32>(ydiv);
-        const mgsp::float32 ysize = worldBB.getHeight() / static_cast<mgsp::float32>(xdiv);
+        const mgsp::float32 xsize = worldBB.getWidth() / static_cast<mgsp::float32>(xdiv);
+        const mgsp::float32 ysize = worldBB.getHeight() / static_cast<mgsp::float32>(ydiv);
 
         // now for each sub cell we need to verify only those that are matrices
-        for (unsigned int i = 0; i < ydiv; ++i) {
-            for (unsigned int j = 0; j < xdiv; ++j) {
+        for (unsigned int i = 0; i < xdiv; ++i) {
+            for (unsigned int j = 0; j < ydiv; ++j) {
                 const mgsp::CellStructInfo* currentCellInfo = &csi->getSubCell(i,j);
                 if (!currentCellInfo->isLeaf()) {
                     // this subCell is not a leaf, we need to check this one
