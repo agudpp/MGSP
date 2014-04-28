@@ -58,7 +58,7 @@ createAABBMaps(const mgsp::CellStructInfo& info,
         // now for each sub cell we need to verify only those that are matrices
         for (unsigned int i = 0; i < xdiv; ++i) {
             for (unsigned int j = 0; j < ydiv; ++j) {
-                const mgsp::CellStructInfo* currentCellInfo = &csi->getSubCell(i,j);
+                const mgsp::CellStructInfo* currentCellInfo = &csi->getSubCell(j,i);
                 if (!currentCellInfo->isLeaf()) {
                     // this subCell is not a leaf, we need to check this one
                     // later
@@ -180,6 +180,8 @@ MultiGridSpacePartition::getIDsFromAABB(const AABB& aabb,
     // start with the first one
     mTmpMatrixIds.clear();
     mTmpMatrixIds.push_back(0); //0 == getRootMatrix()
+
+    DEBUG_PRINT("Getting ids for an AABB: " << aabb << std::endl);
     while (!mTmpMatrixIds.empty()) {
         const uint16_t mindex = mTmpMatrixIds.back();
         mTmpMatrixIds.pop_back();
@@ -188,15 +190,21 @@ MultiGridSpacePartition::getIDsFromAABB(const AABB& aabb,
         ASSERT(mindex < mMatrixCells.size());
         const MatrixPartition<uint16_t>& matrix = mMatrixCells[mindex];
         matrix.getCells(aabb, mTmpIndices);
+        DEBUG_PRINT("Getting cells for matrix (index): " << mindex <<
+                    " and with bounding box: " << matrix.boundingBox() <<
+                    "\nWith child indices: \n");
 
         // iterate over all the cells and check if is a matrix or leaf cell
         for (size_t i = 0; i < mTmpIndices.size(); ++i) {
             ASSERT(mTmpIndices[i] < mCells.size());
             const Cell& cell = mCells[mTmpIndices[i]];
+            DEBUG_PRINT("\tChild Cell Index: " << mTmpIndices[i]);
             if (cell.isLeaf()) {
                 ids.push_back(cell.index());
+                DEBUG_PRINT("\tleaf\n");
             } else {
                 mTmpMatrixIds.push_back(cell.index());
+                DEBUG_PRINT("\tmatrix\n");
             }
         }
     }
@@ -282,6 +290,8 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
                                             cic.cellInfo->getYSubdivisions(),
                                             aabbMap[cic.cellInfo],
                                             cellIndex);
+        DEBUG_PRINT("New matrix created[ " << cic.cellIndex << "," <<
+                    matrixIndex << "]: " << aabbMap[cic.cellInfo]);
         ++matrixIndex;
 
         // now check for each subcell
@@ -290,6 +300,7 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
             if (subCells[i].isLeaf()) {
                 // configure this subCell as a leaf cell
                 mCells[cellIndex].configure(true, leafIndex);
+                DEBUG_PRINT("New Leaf cell[" << cellIndex << "," << leafIndex << "]\n");
                 ++cellIndex; ++leafIndex;
             } else {
                 // this is a Matrix cell, we will configure it in the next pass
@@ -304,6 +315,9 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
     ASSERT(cellIndex == mCells.size());
     ASSERT(matrixIndex == mMatrixCells.size());
     ASSERT(leafIndex == mLeafCells.size());
+
+    DEBUG_PRINT("We build a new mgsp: NumCells: " << cellIndex << "\tNumMatrix: " <<
+                matrixIndex << "\tNumLeafs: " << leafIndex << std::endl);
 
     return true;
 }
@@ -339,6 +353,7 @@ MultiGridSpacePartition::insert(Object* object)
     }
 
     // insert the element to the matrix
+    DEBUG_PRINT("\n\nINSERTING OBJECT!: " << object->_mgsp_aabb << "\n");
     getIDsFromAABB(object->_mgsp_aabb, mLeafTmpIndices);
     for (size_t i = 0; i < mLeafTmpIndices.size(); ++i) {
         ASSERT(mLeafTmpIndices[i] < mLeafCells.size());

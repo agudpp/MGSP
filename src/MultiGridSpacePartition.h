@@ -75,16 +75,16 @@ public:
     const CellStructInfo&
     getSubCell(uint8_t row, uint8_t col) const
     {
-        ASSERT(row < mXSubDivisions);
-        ASSERT(col < mYSubDivisions);
+        ASSERT(row < mYSubDivisions);
+        ASSERT(col < mXSubDivisions);
         // this is assert(mYSubDivisions * row + col < mSubCells.size());
         return mSubCells[mYSubDivisions * row + col];
     }
     CellStructInfo&
     getSubCell(uint8_t row, uint8_t col)
     {
-        ASSERT(row < mXSubDivisions);
-        ASSERT(col < mYSubDivisions);
+        ASSERT(row < mYSubDivisions);
+        ASSERT(col < mXSubDivisions);
         // this is assert(mYSubDivisions * row + col < mSubCells.size());
         return mSubCells[mYSubDivisions * row + col];
     }

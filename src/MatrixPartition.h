@@ -232,6 +232,7 @@ MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& r
     result.clear();
     // do fast check first
     if (!mBoundingBox.collide(aabb)) {
+        ASSERT(false);
         return;
     }
 
