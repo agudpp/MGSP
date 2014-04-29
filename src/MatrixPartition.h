@@ -46,14 +46,14 @@ public:
     //        we will remove all the data and initialize the new one.
     // @note that we will use only a uint8 (256) subdivisions possible only. This
     //       should be enough for most of the cases.
-    // @param numColumns    The number of columns to use
     // @param numRows       The number of rows to use
+    // @param numColumns    The number of columns to use
     // @param aabb          The world space we are mapping with this matrix
     // @param beginIndex    The beginning index where we map our cells
     //
     inline void
-    construct(uint8_t numColumns,
-              uint8_t numRows,
+    construct(uint8_t numRows,
+              uint8_t numColumns,
               const AABB& aabb,
               IndexType beginIndex);
 
@@ -142,7 +142,7 @@ inline size_t
 MatrixPartition<IndexType>::getClampedX(float32 x) const
 {
     return (x <= mBoundingBox.tl.x ? 0 :
-            x >= mBoundingBox.br.x ? mNumRows - 1 :
+            x >= mBoundingBox.br.x ? mNumColumns - 1 :
             static_cast<size_t>((x - mBoundingBox.tl.x) * mInvXFactor));
 }
 template<typename IndexType>
@@ -157,8 +157,8 @@ MatrixPartition<IndexType>::getClampedY(float32 y) const
 ////////////////////////////////////////////////////////////////////////////////
 template<typename IndexType>
 inline void
-MatrixPartition<IndexType>::construct(uint8_t numColumns,
-                                      uint8_t numRows,
+MatrixPartition<IndexType>::construct(uint8_t numRows,
+                                      uint8_t numColumns,
                                       const AABB& aabb,
                                       IndexType beginIndex)
 {
@@ -216,8 +216,8 @@ MatrixPartition<IndexType>::getCellIndex(const Vector2& position) const
 {
     // translate positions inside of our coordinate system and multiply by the
     // factor to get the index directly
-    const size_t row = getClampedX(position.x);
-    const size_t col = getClampedY(position.y);
+    const size_t row = getClampedY(position.y);
+    const size_t col = getClampedX(position.x);
 
     ASSERT(row < mNumRows);
     ASSERT(col < mNumColumns);
@@ -232,20 +232,24 @@ MatrixPartition<IndexType>::getCells(const AABB& aabb, std::vector<IndexType>& r
     result.clear();
     // do fast check first
     if (!mBoundingBox.collide(aabb)) {
+        DEBUG_PRINT("ERROR: aabb:" << aabb << "\nand the current matrix world: " << mBoundingBox);
         ASSERT(false);
         return;
     }
 
     // we can ensure that we have a intersection, get the x ranges and y ranges
-    size_t rowBegin = getClampedX(aabb.tl.x),
-                 rowEnd = getClampedX(aabb.br.x),
-                 colBegin = getClampedY(aabb.br.y),
-                 colEnd = getClampedY(aabb.tl.y);
+    size_t rowBegin = getClampedY(aabb.br.y),
+                 rowEnd = getClampedY(aabb.tl.y),
+                 colBegin = getClampedX(aabb.tl.x),
+                 colEnd = getClampedX(aabb.br.x);
 
     // we will not reserve space for the result since we assume that the vector
     // was used before and already contains sufficient space to allocate this
 
     // TODO: optimize this
+    DEBUG_PRINT("rowBegin: " << rowBegin << ", rowEnd: " << rowEnd <<
+                ", colBegin: " << colBegin << ", colEnd: " << colEnd <<
+                ", numRows: " << (int)mNumRows << ", numCols: " << (int)mNumColumns << std::endl);
     for (; rowBegin <= rowEnd; ++rowBegin) {
         for (size_t col = colBegin; col <= colEnd; ++col) {
             result.push_back(getCellIndex(rowBegin, col));

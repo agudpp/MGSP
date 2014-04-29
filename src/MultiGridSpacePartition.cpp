@@ -196,9 +196,9 @@ MultiGridSpacePartition::getIDsFromAABB(const AABB& aabb,
 
         // iterate over all the cells and check if is a matrix or leaf cell
         for (size_t i = 0; i < mTmpIndices.size(); ++i) {
+            DEBUG_PRINT("\tChild Cell Index: " << mTmpIndices[i]);
             ASSERT(mTmpIndices[i] < mCells.size());
             const Cell& cell = mCells[mTmpIndices[i]];
-            DEBUG_PRINT("\tChild Cell Index: " << mTmpIndices[i]);
             if (cell.isLeaf()) {
                 ids.push_back(cell.index());
                 DEBUG_PRINT("\tleaf\n");
@@ -286,8 +286,8 @@ MultiGridSpacePartition::build(const AABB& worldSize, const CellStructInfo& info
         // configure the cell matrix
         ASSERT(aabbMap.find(cic.cellInfo) != aabbMap.end());
         mCells[cic.cellIndex].configure(false, matrixIndex);
-        mMatrixCells[matrixIndex].construct(cic.cellInfo->getXSubdivisions(),
-                                            cic.cellInfo->getYSubdivisions(),
+        mMatrixCells[matrixIndex].construct(cic.cellInfo->getYSubdivisions(),
+                                            cic.cellInfo->getXSubdivisions(),
                                             aabbMap[cic.cellInfo],
                                             cellIndex);
         DEBUG_PRINT("New matrix created[ " << cic.cellIndex << "," <<

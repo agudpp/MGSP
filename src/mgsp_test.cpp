@@ -109,7 +109,6 @@ getCollList(OV& objs, unsigned int index, OPHS& result)
     }\
 }\
 
-/*
 TEST(BasicOperations)
 {
     MGSP mgsp;
@@ -220,7 +219,6 @@ TEST(TestSimpleCollisions)
     CHECK_EQUAL(objs.size(), queryResult.size());
 
 }
-*/
 
 TEST(TestTwoLevelStressColl)
 {
@@ -229,13 +227,13 @@ TEST(TestTwoLevelStressColl)
     AABB world(500,-500,-500, 500);
 
     // create basic matrix with one subdivision
-    const uint8_t subcellsX = 2;
-    const uint8_t subcellsY = 2;
+    const uint8_t subcellsX = 10;
+    const uint8_t subcellsY = 10;
     binfo.createSubDivisions(subcellsX,subcellsY);
     // we will subdivide each cell into 4-8 subcells
     for (uint8_t x = 0; x < subcellsX; ++x) {
         for (uint8_t y = 0; y < subcellsY; ++y) {
-            binfo.getSubCell(x,y).createSubDivisions(1,  2);
+            binfo.getSubCell(x,y).createSubDivisions(x%6 + 2,  y%6 + 2);
         }
     }
     CHECK_EQUAL(true, mgsp.build(world, binfo));
@@ -243,7 +241,7 @@ TEST(TestTwoLevelStressColl)
     // add some elements in different places and ensure that they are colliding
     // we will add 10x10 elements in some kind of grid but touching betweem them
     //
-    const unsigned int NUM_DIVS = 4;
+    const unsigned int NUM_DIVS = 10;
     ASSERT(NUM_DIVS % 2 == 0);
     const float32 epsilon = 1.f;
     const float32 width = world.getWidth() / static_cast<float32>(NUM_DIVS);
